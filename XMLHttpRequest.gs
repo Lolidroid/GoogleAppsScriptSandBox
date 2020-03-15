@@ -71,5 +71,51 @@ class UrlFetchRequest {
     }
   }  
 };
+// GoogleDrive APIを使用したXMLHttpRequesのモック実装
+// 以下のURL形式に対応しています。
+// ・<folder id>/<file name>
+class GoogleDriveRequest {
+  constructor() {
+    this.UNSENT = 0;
+    this.DONE = 4;
+    
+    // Class properties
+    this.responseType = "";
+    // Current state
+    this.readyState = this.UNSENT;
+    
+    // default ready state change handler in case one is not set or is set late
+    // this.onreadystatechange = null;
+    
+    // Result & response
+    // this.responseText = "";
+    this.response = null;
+    this.status = null;
+    this.onload = null;
+    this.onerror = null;
+    
+    this.option = {};
+    this.url = "";
+  }
+  
+  open(method, url, async, user, password) {
+    this.url = url;
+  }
+  
+  send(){
+    const [folderId, fileName] = this.url.split('/');
+    //Logger.log("folder id : %s, file name: %s", folderId, fileName);
+    const file = DriveApp.getFolderById(folderId).getFilesByName(fileName).next();
+    
+    this.response = file.getBlob().getBytes();
+    
+    this.status = 200;
+    this.readyState = this.DONE;
 
-const XMLHttpRequest = UrlFetchRequest;
+    if(this.onload){
+      this.onload();
+    }
+  }  
+};
+const XMLHttpRequest = GoogleDriveRequest;
+//const XMLHttpRequest = UrlFetchRequest;
